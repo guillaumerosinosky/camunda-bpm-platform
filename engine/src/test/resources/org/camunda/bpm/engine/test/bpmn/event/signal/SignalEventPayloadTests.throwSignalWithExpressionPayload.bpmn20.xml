@@ -6,7 +6,7 @@
 	
 	<signal id="alertSignal" name="alert">
 		<extensionElements>
-			<camunda:in sourceExpression="${'source' + payloadVar}" target="srcExpressionResVal" />
+			<camunda:in sourceExpression="${'source'.concat(payloadVar)}" target="srcExpressionResVal" />
 		</extensionElements>
 	</signal>
 

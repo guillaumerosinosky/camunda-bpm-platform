@@ -405,6 +405,10 @@ public class BpmnParse extends Parse {
         signal.setId(this.targetNamespace + ":" + id);
         signal.setExpression(signalExpression);
 
+        CallableElement payload = new CallableElement();
+        parseInputParameter(signalElement, null, payload);
+        signal.setPayload(payload);
+
         this.signals.put(signal.getId(), signal);
       }
     }
@@ -3213,7 +3217,7 @@ public class BpmnParse extends Parse {
       if (signalDefinition == null) {
         addError("Could not find signal with id '" + signalRef + "'", signalEventDefinitionElement);
       }
-      EventSubscriptionDeclaration signalEventDefinition = new EventSubscriptionDeclaration(signalDefinition.getExpression(), EventType.SIGNAL);
+      EventSubscriptionDeclaration signalEventDefinition = new EventSubscriptionDeclaration(signalDefinition.getExpression(), EventType.SIGNAL, signalDefinition.getPayload());
 
       boolean throwingAsynch = TRUE.equals(signalEventDefinitionElement.attributeNS(CAMUNDA_BPMN_EXTENSIONS_NS, "async", "false"));
       signalEventDefinition.setAsync(throwingAsynch);
@@ -3699,8 +3703,8 @@ public class BpmnParse extends Parse {
     callableElement.setVersionValueProvider(versionProvider);
   }
 
-  protected void parseInputParameter(Element callActivityElement, ActivityImpl activity, CallableElement callableElement) {
-    Element extensionsElement = callActivityElement.element("extensionElements");
+  protected void parseInputParameter(Element elementWithParameters, ActivityImpl activity, CallableElement callableElement) {
+    Element extensionsElement = elementWithParameters.element("extensionElements");
 
     if (extensionsElement != null) {
       // input data elements

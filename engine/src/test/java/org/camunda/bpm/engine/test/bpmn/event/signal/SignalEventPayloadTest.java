@@ -9,20 +9,17 @@ import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.history.HistoricVariableInstance;
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
+import org.camunda.bpm.engine.task.Task;
 import org.camunda.bpm.engine.test.Deployment;
 import org.camunda.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.camunda.bpm.engine.test.util.ProcessEngineTestRule;
 import org.camunda.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.RuleChain;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -81,21 +78,21 @@ public class SignalEventPayloadTest {
     Map<String, Object> variables = new HashMap<String, Object>();
     variables.put("payloadVar1", "payloadVal1");
     variables.put("payloadVar2", "payloadVal2");
-    ProcessInstance catchingPI = runtimeService.startProcessInstanceByKey("catchStartPayloadSignal");
 
     // when
-    ProcessInstance throwingPI = runtimeService.startProcessInstanceByKey("throwPayloadSignal", variables);
+    runtimeService.startProcessInstanceByKey("throwPayloadSignal", variables);
 
     // then
-    assertEquals(0, runtimeService.createProcessInstanceQuery()
-      .processInstanceIds(new HashSet<String>(Arrays.asList(throwingPI.getId(), catchingPI.getId())))
-      .count());
+    Task catchingPiUserTask = taskService.createTaskQuery().singleResult();
 
-    List<HistoricVariableInstance> catchingPiVariables = processEngineConfiguration.getHistoryService().createHistoricVariableInstanceQuery().processInstanceId(catchingPI.getId()).list();
+    List<HistoricVariableInstance> catchingPiVariables = processEngineConfiguration.getHistoryService()
+      .createHistoricVariableInstanceQuery()
+      .processInstanceId(catchingPiUserTask.getProcessInstanceId())
+      .list();
     assertEquals(2, catchingPiVariables.size());
 
     for(HistoricVariableInstance variable : catchingPiVariables) {
-      if(variable.getName().equals("payloadVar1"))
+      if(variable.getName().equals("payloadVar1Target"))
         assertEquals("payloadVal1", variable.getValue());
       else
         assertEquals("payloadVal2", variable.getValue());
@@ -107,7 +104,8 @@ public class SignalEventPayloadTest {
    * Using Source and Target Variable name mapping attributes.
    */
   @Test
-  @Deployment(resources = { "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.throwSignalWithPayload.bpmn20.xml",
+  @Deployment(resources = {
+    "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.throwSignalWithPayload.bpmn20.xml",
     "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.catchSignalWithPayloadIntermediate.bpmn20.xml" })
   public void testSignalPayloadIntermediate() {
     // given
@@ -124,11 +122,14 @@ public class SignalEventPayloadTest {
       .processInstanceIds(new HashSet<String>(Arrays.asList(throwingPI.getId(), catchingPI.getId())))
       .count());
 
-    List<HistoricVariableInstance> catchingPiVariables = processEngineConfiguration.getHistoryService().createHistoricVariableInstanceQuery().processInstanceId(catchingPI.getId()).list();
+    List<HistoricVariableInstance> catchingPiVariables = processEngineConfiguration.getHistoryService()
+      .createHistoricVariableInstanceQuery()
+      .processInstanceId(catchingPI.getId())
+      .list();
     assertEquals(2, catchingPiVariables.size());
 
     for(HistoricVariableInstance variable : catchingPiVariables) {
-      if(variable.getName().equals("payloadVar1"))
+      if(variable.getName().equals("payloadVar1Target"))
         assertEquals("payloadVal1", variable.getValue());
       else
         assertEquals("payloadVal2", variable.getValue());
@@ -139,7 +140,8 @@ public class SignalEventPayloadTest {
    * Test case for CAM-8820 with an expression as a source.
    */
   @Test
-  @Deployment(resources = { "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.throwSignalWithExpressionPayload.bpmn20.xml",
+  @Deployment(resources = {
+    "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.throwSignalWithExpressionPayload.bpmn20.xml",
     "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.catchSignalWithPayloadIntermediate.bpmn20.xml" })
   public void testSignalSourceExpressionPayload() {
     // given
@@ -155,7 +157,10 @@ public class SignalEventPayloadTest {
       .processInstanceIds(new HashSet<String>(Arrays.asList(throwingPI.getId(), catchingPI.getId())))
       .count());
 
-    List<HistoricVariableInstance> catchingPiVariables = processEngineConfiguration.getHistoryService().createHistoricVariableInstanceQuery().processInstanceId(catchingPI.getId()).list();
+    List<HistoricVariableInstance> catchingPiVariables = processEngineConfiguration.getHistoryService()
+      .createHistoricVariableInstanceQuery()
+      .processInstanceId(catchingPI.getId())
+      .list();
     assertEquals(1, catchingPiVariables.size());
 
     assertEquals("srcExpressionResVal", catchingPiVariables.get(0).getName());
@@ -167,7 +172,8 @@ public class SignalEventPayloadTest {
    * as the signal payload.
    */
   @Test
-  @Deployment(resources = { "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.throwSignalWithAllVariablesPayload.bpmn20.xml",
+  @Deployment(resources = {
+    "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.throwSignalWithAllVariablesPayload.bpmn20.xml",
     "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.catchSignalWithPayloadIntermediate.bpmn20.xml" })
   public void testSignalAllSourceVariablesPayload() {
     // given
@@ -184,7 +190,10 @@ public class SignalEventPayloadTest {
       .processInstanceIds(new HashSet<String>(Arrays.asList(throwingPI.getId(), catchingPI.getId())))
       .count());
 
-    List<HistoricVariableInstance> catchingPiVariables = processEngineConfiguration.getHistoryService().createHistoricVariableInstanceQuery().processInstanceId(catchingPI.getId()).list();
+    List<HistoricVariableInstance> catchingPiVariables = processEngineConfiguration.getHistoryService()
+      .createHistoricVariableInstanceQuery()
+      .processInstanceId(catchingPI.getId())
+      .list();
     assertEquals(2, catchingPiVariables.size());
 
     for(HistoricVariableInstance variable : catchingPiVariables) {
@@ -200,10 +209,13 @@ public class SignalEventPayloadTest {
    * as the signal payload.
    */
   @Test
-  @Deployment(resources = { "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.throwSignalWithAllLocalVariablesPayload.bpmn20.xml",
+  @Deployment(resources = {
+    "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.throwSignalWithAllLocalVariablesPayload.bpmn20.xml",
     "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.catchSignalWithPayloadIntermediate.bpmn20.xml" })
   public void testSignalAllLocalSourceVariablesPayload() {
     // given
+    Map<String, Object> variables = new HashMap<String, Object>();
+    variables.put("payloadVar1", "payloadVal1");
     String localVar1 = "localVar1";
     String localVal1 = "localVal1";;
     String localVar2 = "localVar2";
@@ -211,15 +223,17 @@ public class SignalEventPayloadTest {
     ProcessInstance catchingPI = runtimeService.startProcessInstanceByKey("catchIntermediatePayloadSignal");
 
     // when
-    // TODO Put Local vars
-    ProcessInstance throwingPI = runtimeService.startProcessInstanceByKey("throwPayloadSignal");
+    ProcessInstance throwingPI = runtimeService.startProcessInstanceByKey("throwPayloadSignal", variables);
 
     // then
     assertEquals(0, runtimeService.createProcessInstanceQuery()
       .processInstanceIds(new HashSet<String>(Arrays.asList(throwingPI.getId(), catchingPI.getId())))
       .count());
 
-    List<HistoricVariableInstance> catchingPiVariables = processEngineConfiguration.getHistoryService().createHistoricVariableInstanceQuery().processInstanceId(catchingPI.getId()).list();
+    List<HistoricVariableInstance> catchingPiVariables = processEngineConfiguration.getHistoryService()
+      .createHistoricVariableInstanceQuery()
+      .processInstanceId(catchingPI.getId())
+      .list();
     assertEquals(2, catchingPiVariables.size());
 
     for(HistoricVariableInstance variable : catchingPiVariables) {
@@ -235,7 +249,8 @@ public class SignalEventPayloadTest {
    * as signal payload.
    */
   @Test
-  @Deployment(resources = { "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.throwSignalWithBusinessKeyPayload.bpmn20.xml",
+  @Deployment(resources = {
+    "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.throwSignalWithBusinessKeyPayload.bpmn20.xml",
     "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.catchSignalWithBusinessKeyPayload.bpmn20.xml" })
   public void testSignalBusinessKeyPayload() {
     // given
@@ -250,7 +265,10 @@ public class SignalEventPayloadTest {
       .processInstanceIds(new HashSet<String>(Arrays.asList(throwingPI.getId(), catchingPI.getId())))
       .count());
 
-    HistoricProcessInstance cPi = processEngineConfiguration.getHistoryService().createHistoricProcessInstanceQuery().processInstanceId(catchingPI.getId()).singleResult();
+    HistoricProcessInstance cPi = processEngineConfiguration.getHistoryService()
+      .createHistoricProcessInstanceQuery()
+      .processInstanceId(catchingPI.getId())
+      .singleResult();
     assertEquals(businessKey, cPi.getBusinessKey());
   }
 }

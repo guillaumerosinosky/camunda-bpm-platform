@@ -6,8 +6,8 @@
 	
 	<signal id="alertSignal" name="alert">
 		<extensionElements>
-            <camunda:in source="payloadVar1" target="targetPayloadVar" />
-            <camunda:in source="payloadVar2" target="targetPayloadVar" />
+            <camunda:in source="payloadVar1" target="payloadVar1Target" />
+            <camunda:in source="payloadVar2" target="payloadVar2Target" />
 		</extensionElements>
 	</signal>
 

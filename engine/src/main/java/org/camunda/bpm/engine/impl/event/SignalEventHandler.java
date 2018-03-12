@@ -23,6 +23,9 @@ import org.camunda.bpm.engine.impl.persistence.entity.EventSubscriptionEntity;
 import org.camunda.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.camunda.bpm.engine.impl.pvm.PvmProcessInstance;
 import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
+
+import java.util.Map;
+
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 
 
@@ -49,10 +52,15 @@ public class SignalEventHandler extends EventHandlerImpl {
       // ignore event subscription
       LOG.debugIgnoringEventSubscription(eventSubscription, processDefinitionId);
     } else {
-
       ActivityImpl signalStartEvent = processDefinition.findActivity(eventSubscription.getActivityId());
-      PvmProcessInstance processInstance = processDefinition.createProcessInstanceForInitial(signalStartEvent);
-      processInstance.start();
+      // TODO Get business key from payload
+      String businessKey = "test";
+      PvmProcessInstance processInstance = processDefinition.createProcessInstance(businessKey, signalStartEvent);
+
+      if (payload != null && payload instanceof Map)
+        processInstance.start((Map<String, Object>) payload);
+      else
+        processInstance.start();
     }
   }
 
