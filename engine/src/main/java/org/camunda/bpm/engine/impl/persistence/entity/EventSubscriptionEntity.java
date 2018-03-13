@@ -22,12 +22,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.camunda.bpm.engine.impl.context.Context;
-import org.camunda.bpm.engine.impl.core.model.CallableElement;
-import org.camunda.bpm.engine.impl.core.variable.mapping.value.ParameterValueProvider;
 import org.camunda.bpm.engine.impl.db.DbEntity;
 import org.camunda.bpm.engine.impl.db.HasDbReferences;
 import org.camunda.bpm.engine.impl.db.HasDbRevision;
-import org.camunda.bpm.engine.impl.el.Expression;
 import org.camunda.bpm.engine.impl.event.EventHandler;
 import org.camunda.bpm.engine.impl.event.EventType;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
@@ -57,12 +54,12 @@ public class EventSubscriptionEntity implements EventSubscription, DbEntity, Has
   protected String configuration;
   protected Date created;
   protected String tenantId;
-  protected String businessKey;
 
   // runtime state /////////////////////////////
   protected ExecutionEntity execution;
   protected ActivityImpl activity;
   protected EventSubscriptionJobDeclaration jobDeclaration;
+  protected String businessKey;
 
   /////////////////////////////////////////////
 
