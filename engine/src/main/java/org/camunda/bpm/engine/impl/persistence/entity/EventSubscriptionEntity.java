@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.camunda.bpm.engine.impl.context.Context;
+import org.camunda.bpm.engine.impl.core.model.CallableElement;
 import org.camunda.bpm.engine.impl.core.variable.mapping.value.ParameterValueProvider;
 import org.camunda.bpm.engine.impl.db.DbEntity;
 import org.camunda.bpm.engine.impl.db.HasDbReferences;
@@ -56,6 +57,7 @@ public class EventSubscriptionEntity implements EventSubscription, DbEntity, Has
   protected String configuration;
   protected Date created;
   protected String tenantId;
+  protected String businessKey;
 
   // runtime state /////////////////////////////
   protected ExecutionEntity execution;
@@ -318,6 +320,14 @@ public class EventSubscriptionEntity implements EventSubscription, DbEntity, Has
 
   public void setTenantId(String tenantId) {
     this.tenantId = tenantId;
+  }
+
+  public String getBusinessKey() {
+    return businessKey;
+  }
+
+  public void setBusinessKey(String businessKey) {
+    this.businessKey = businessKey;
   }
 
   @Override

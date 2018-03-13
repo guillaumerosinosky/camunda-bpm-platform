@@ -5,7 +5,6 @@ import org.camunda.bpm.engine.ProcessEngineConfiguration;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
-import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.history.HistoricVariableInstance;
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
@@ -251,24 +250,16 @@ public class SignalEventPayloadTest {
   @Test
   @Deployment(resources = {
     "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.throwSignalWithBusinessKeyPayload.bpmn20.xml",
-    "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.catchSignalWithBusinessKeyPayload.bpmn20.xml" })
+    "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.catchSignalWithPayloadStart.bpmn20.xml" })
   public void testSignalBusinessKeyPayload() {
     // given
     String businessKey = "aBusinessKey";
-    ProcessInstance catchingPI = runtimeService.startProcessInstanceByKey("catchBusinessKeyPayloadSignal");
 
     // when
     ProcessInstance throwingPI = runtimeService.startProcessInstanceByKey("throwBusinessKeyPayloadSignal", businessKey);
 
     // then
-    assertEquals(0, runtimeService.createProcessInstanceQuery()
-      .processInstanceIds(new HashSet<String>(Arrays.asList(throwingPI.getId(), catchingPI.getId())))
-      .count());
-
-    HistoricProcessInstance cPi = processEngineConfiguration.getHistoryService()
-      .createHistoricProcessInstanceQuery()
-      .processInstanceId(catchingPI.getId())
-      .singleResult();
-    assertEquals(businessKey, cPi.getBusinessKey());
+    ProcessInstance catchingPI = runtimeService.createProcessInstanceQuery().singleResult();
+    assertEquals(businessKey, catchingPI.getBusinessKey());
   }
 }

@@ -47,9 +47,6 @@ public class EventHandlerImpl implements EventHandler {
     if (payload instanceof Map) {
       @SuppressWarnings("unchecked")
       Map<String, Object> processVariables = (Map<String, Object>) payload;
-      // TODO Get business key from payload
-      String businessKey = "test";
-      execution.setBusinessKey(businessKey);
       execution.setVariables(processVariables);
     }
 

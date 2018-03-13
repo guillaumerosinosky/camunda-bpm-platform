@@ -25,8 +25,9 @@ import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.impl.pvm.delegate.ActivityExecution;
 import org.camunda.bpm.engine.variable.VariableMap;
 
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 
 /**
  * Defines activity behavior for signal end event and intermediate throw signal event.
@@ -56,6 +57,7 @@ public class ThrowSignalEventActivityBehavior extends AbstractBpmnActivityBehavi
 
     for (EventSubscriptionEntity signalEventSubscription : signalEventSubscriptions) {
       if (isActiveEventSubscription(signalEventSubscription)) {
+        signalEventSubscription.setBusinessKey(businessKey);
         signalEventSubscription.eventReceived(variableMap, signalDefinition.isAsync());
       }
     }

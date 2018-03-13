@@ -53,14 +53,13 @@ public class SignalEventHandler extends EventHandlerImpl {
       LOG.debugIgnoringEventSubscription(eventSubscription, processDefinitionId);
     } else {
       ActivityImpl signalStartEvent = processDefinition.findActivity(eventSubscription.getActivityId());
-      // TODO Get business key from payload
-      String businessKey = "test";
-      PvmProcessInstance processInstance = processDefinition.createProcessInstance(businessKey, signalStartEvent);
+      PvmProcessInstance processInstance = processDefinition.createProcessInstance(eventSubscription.getBusinessKey(), signalStartEvent);
 
-      if (payload != null && payload instanceof Map)
+      if (payload != null && payload instanceof Map) {
         processInstance.start((Map<String, Object>) payload);
-      else
+      } else {
         processInstance.start();
+      }
     }
   }
 
