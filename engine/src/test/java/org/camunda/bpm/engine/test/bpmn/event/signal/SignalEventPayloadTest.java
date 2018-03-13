@@ -136,10 +136,11 @@ public class SignalEventPayloadTest {
     assertEquals(2, catchingPiVariables.size());
 
     for(HistoricVariableInstance variable : catchingPiVariables) {
-      if(variable.getName().equals("payloadVar1Target"))
+      if(variable.getName().equals("payloadVar1Target")) {
         assertEquals("payloadVal1", variable.getValue());
-      else
+      } else {
         assertEquals("payloadVal2", variable.getValue());
+      }
     }
   }
 
@@ -204,10 +205,11 @@ public class SignalEventPayloadTest {
     assertEquals(2, catchingPiVariables.size());
 
     for(HistoricVariableInstance variable : catchingPiVariables) {
-      if(variable.getName().equals("payloadVar1"))
+      if(variable.getName().equals("payloadVar1")) {
         assertEquals("payloadVal1", variable.getValue());
-      else
+      } else {
         assertEquals("payloadVal2", variable.getValue());
+      }
     }
   }
 
@@ -216,7 +218,8 @@ public class SignalEventPayloadTest {
    * as the signal payload.
    */
   @Test
-  @Deployment(resources = { "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.throwEndSignalEventWithAllLocalVariablesPayload.bpmn20.xml",
+  @Deployment(resources = {
+    "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.throwEndSignalEventWithAllLocalVariablesPayload.bpmn20.xml",
     "org/camunda/bpm/engine/test/bpmn/event/signal/SignalEventPayloadTests.catchSignalWithPayloadIntermediate.bpmn20.xml" })
   public void testSignalAllLocalSourceVariablesPayload() {
     // given
@@ -243,10 +246,11 @@ public class SignalEventPayloadTest {
     assertEquals(2, catchingPiVariables.size());
 
     for(HistoricVariableInstance variable : catchingPiVariables) {
-      if(variable.getName().equals(localVar1))
+      if(variable.getName().equals(localVar1)) {
         assertEquals(localVal1, variable.getValue());
-      else
+      } else {
         assertEquals(localVal2, variable.getValue());
+      }
     }
   }
 

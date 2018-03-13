@@ -31,7 +31,6 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
-
 /**
  * @author Daniel Meyer
  * @author Falko Menge

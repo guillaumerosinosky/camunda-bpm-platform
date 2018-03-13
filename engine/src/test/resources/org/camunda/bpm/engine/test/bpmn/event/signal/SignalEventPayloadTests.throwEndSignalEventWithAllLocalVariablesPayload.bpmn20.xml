@@ -4,11 +4,7 @@
 	xmlns:camunda="http://camunda.org/schema/1.0/bpmn" 
 	targetNamespace="Examples">
 	
-	<signal id="alertSignal" name="alert">
-		<extensionElements>
-            <camunda:in variables="all" local="true" />
-		</extensionElements>
-	</signal>
+	<signal id="alertSignal" name="alert" />
 
 	<process id="throwPayloadSignal" isExecutable="true">
 
@@ -23,7 +19,11 @@
 					<camunda:inputParameter name="localVar2">localVal2</camunda:inputParameter>
 				</camunda:inputOutput>
 			</extensionElements>
-			<signalEventDefinition signalRef="alertSignal" />
+			<signalEventDefinition signalRef="alertSignal">
+				<extensionElements>
+					<camunda:in variables="all" local="true" />
+				</extensionElements>
+			</signalEventDefinition>
 		</endEvent>
 
 	</process>

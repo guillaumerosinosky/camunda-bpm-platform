@@ -405,10 +405,6 @@ public class BpmnParse extends Parse {
         signal.setId(this.targetNamespace + ":" + id);
         signal.setExpression(signalExpression);
 
-        CallableElement payload = new CallableElement();
-        parseInputParameter(signalElement, null, payload);
-        signal.setPayload(payload);
-
         this.signals.put(signal.getId(), signal);
       }
     }
@@ -1006,7 +1002,7 @@ public class BpmnParse extends Parse {
       } else if (signalEventDefinition != null) {
         startEventActivity.getProperties().set(BpmnProperties.TYPE, ActivityTypes.START_EVENT_SIGNAL);
 
-        EventSubscriptionDeclaration eventSubscriptionDeclaration = parseSignalEventDefinition(signalEventDefinition);
+        EventSubscriptionDeclaration eventSubscriptionDeclaration = parseSignalEventDefinition(signalEventDefinition, false);
         parseEventDefinitionForSubprocess(eventSubscriptionDeclaration, startEventActivity, signalEventDefinition);
 
       } else if (timerEventDefinition != null) {
@@ -1509,7 +1505,7 @@ public class BpmnParse extends Parse {
     if (signalEventDefinitionElement != null) {
       nestedActivityImpl.getProperties().set(BpmnProperties.TYPE, ActivityTypes.INTERMEDIATE_EVENT_SIGNAL_THROW);
 
-      EventSubscriptionDeclaration signalDefinition = parseSignalEventDefinition(signalEventDefinitionElement);
+      EventSubscriptionDeclaration signalDefinition = parseSignalEventDefinition(signalEventDefinitionElement, true);
       activityBehavior = new ThrowSignalEventActivityBehavior(signalDefinition);
     } else if (compensateEventDefinitionElement != null) {
       nestedActivityImpl.getProperties().set(BpmnProperties.TYPE, ActivityTypes.INTERMEDIATE_EVENT_COMPENSATION_THROW);
@@ -2903,7 +2899,7 @@ public class BpmnParse extends Parse {
         }
       } else if (signalEventDefinition != null) {
         activity.getProperties().set(BpmnProperties.TYPE, ActivityTypes.END_EVENT_SIGNAL);
-        EventSubscriptionDeclaration signalDefinition = parseSignalEventDefinition(signalEventDefinition);
+        EventSubscriptionDeclaration signalDefinition = parseSignalEventDefinition(signalEventDefinition, true);
         activity.setActivityBehavior(new ThrowSignalEventActivityBehavior(signalDefinition));
 
       } else if (compensateEventDefinitionElement != null) {
@@ -3112,7 +3108,7 @@ public class BpmnParse extends Parse {
   public void parseBoundarySignalEventDefinition(Element element, boolean interrupting, ActivityImpl signalActivity) {
     signalActivity.getProperties().set(BpmnProperties.TYPE, ActivityTypes.BOUNDARY_SIGNAL);
 
-    EventSubscriptionDeclaration signalDefinition = parseSignalEventDefinition(element);
+    EventSubscriptionDeclaration signalDefinition = parseSignalEventDefinition(element, false);
     if (signalActivity.getId() == null) {
       addError("boundary event has no id", element);
     }
@@ -3195,7 +3191,7 @@ public class BpmnParse extends Parse {
   }
 
   protected void parseSignalCatchEventDefinition(Element element, ActivityImpl signalActivity, boolean isStartEvent) {
-    EventSubscriptionDeclaration signalDefinition = parseSignalEventDefinition(element);
+    EventSubscriptionDeclaration signalDefinition = parseSignalEventDefinition(element, false);
     signalDefinition.setActivityId(signalActivity.getId());
     signalDefinition.setStartEvent(isStartEvent);
     addEventSubscriptionDeclaration(signalDefinition, signalActivity.getEventScope(), element);
@@ -3207,7 +3203,14 @@ public class BpmnParse extends Parse {
     addEventSubscriptionJobDeclaration(catchingAsyncDeclaration, signalActivity, element);
   }
 
-  protected EventSubscriptionDeclaration parseSignalEventDefinition(Element signalEventDefinitionElement) {
+  /**
+   * Parses the Signal Event Definition XML including payload definition.
+   *
+   * @param signalEventDefinitionElement the Signal Event Definition element
+   * @param isThrowing true if a Throwing signal event is being parsed
+   * @return
+   */
+  protected EventSubscriptionDeclaration parseSignalEventDefinition(Element signalEventDefinitionElement, boolean isThrowing) {
     String signalRef = signalEventDefinitionElement.attribute("signalRef");
     if (signalRef == null) {
       addError("signalEventDefinition does not have required property 'signalRef'", signalEventDefinitionElement);
@@ -3217,10 +3220,18 @@ public class BpmnParse extends Parse {
       if (signalDefinition == null) {
         addError("Could not find signal with id '" + signalRef + "'", signalEventDefinitionElement);
       }
-      EventSubscriptionDeclaration signalEventDefinition = new EventSubscriptionDeclaration(signalDefinition.getExpression(), EventType.SIGNAL, signalDefinition.getPayload());
 
-      boolean throwingAsynch = TRUE.equals(signalEventDefinitionElement.attributeNS(CAMUNDA_BPMN_EXTENSIONS_NS, "async", "false"));
-      signalEventDefinition.setAsync(throwingAsynch);
+      EventSubscriptionDeclaration signalEventDefinition;
+      if (isThrowing) {
+        CallableElement payload = new CallableElement();
+        parseInputParameter(signalEventDefinitionElement, null, payload);
+        signalEventDefinition = new EventSubscriptionDeclaration(signalDefinition.getExpression(), EventType.SIGNAL, payload);
+      } else {
+        signalEventDefinition = new EventSubscriptionDeclaration(signalDefinition.getExpression(), EventType.SIGNAL);
+      }
+
+      boolean throwingAsync = TRUE.equals(signalEventDefinitionElement.attributeNS(CAMUNDA_BPMN_EXTENSIONS_NS, "async", "false"));
+      signalEventDefinition.setAsync(throwingAsync);
 
       return signalEventDefinition;
     }

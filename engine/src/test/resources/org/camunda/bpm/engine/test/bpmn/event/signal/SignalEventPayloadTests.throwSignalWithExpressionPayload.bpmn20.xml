@@ -4,11 +4,7 @@
 	xmlns:camunda="http://camunda.org/schema/1.0/bpmn" 
 	targetNamespace="Examples">
 	
-	<signal id="alertSignal" name="alert">
-		<extensionElements>
-			<camunda:in sourceExpression="${'source'.concat(payloadVar)}" target="srcExpressionResVal" />
-		</extensionElements>
-	</signal>
+	<signal id="alertSignal" name="alert" />
 
 	<process id="throwExpressionPayloadSignal" isExecutable="true">
 
@@ -17,7 +13,11 @@
 		<sequenceFlow sourceRef="start" targetRef="signalEvent" />
 
 		<intermediateThrowEvent id="signalEvent" name="Alert" >
-			<signalEventDefinition signalRef="alertSignal" />
+			<signalEventDefinition signalRef="alertSignal">
+				<extensionElements>
+					<camunda:in sourceExpression="${'source'.concat(payloadVar)}" target="srcExpressionResVal" />
+				</extensionElements>
+			</signalEventDefinition>
 		</intermediateThrowEvent>
 
 		<sequenceFlow sourceRef="signalEvent" targetRef="end" />
