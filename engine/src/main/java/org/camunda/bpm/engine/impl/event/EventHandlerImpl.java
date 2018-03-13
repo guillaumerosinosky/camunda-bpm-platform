@@ -13,14 +13,15 @@
 
 package org.camunda.bpm.engine.impl.event;
 
-
 import java.util.Map;
 
+import org.camunda.bpm.engine.ProcessEngineException;
 import org.camunda.bpm.engine.impl.bpmn.behavior.EventSubProcessStartEventActivityBehavior;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
 import org.camunda.bpm.engine.impl.persistence.entity.EventSubscriptionEntity;
 import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.camunda.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
+
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 
 /**
@@ -45,9 +46,7 @@ public class EventHandlerImpl implements EventHandler {
       + "no activity associated with event subscription", "activity", activity);
 
     if (payload instanceof Map) {
-      @SuppressWarnings("unchecked")
-      Map<String, Object> processVariables = (Map<String, Object>) payload;
-      execution.setVariables(processVariables);
+      execution.setVariables((Map<String, Object>)payload);
     }
 
     if(activity.equals(execution.getActivity())) {
@@ -65,7 +64,7 @@ public class EventHandlerImpl implements EventHandler {
   }
 
   @Override
-  public void handleEvent(EventSubscriptionEntity eventSubscription, Object payload, CommandContext commandContext) {
+  public void handleEvent(EventSubscriptionEntity eventSubscription, Object payload, String businessKey, CommandContext commandContext) {
     handleIntermediateEvent(eventSubscription, payload, commandContext);
   }
 

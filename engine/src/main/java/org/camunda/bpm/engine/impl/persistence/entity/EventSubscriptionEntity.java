@@ -59,7 +59,6 @@ public class EventSubscriptionEntity implements EventSubscription, DbEntity, Has
   protected ExecutionEntity execution;
   protected ActivityImpl activity;
   protected EventSubscriptionJobDeclaration jobDeclaration;
-  protected String businessKey;
 
   /////////////////////////////////////////////
 
@@ -81,28 +80,39 @@ public class EventSubscriptionEntity implements EventSubscription, DbEntity, Has
   }
 
   // processing /////////////////////////////
-
   public void eventReceived(Object payload, boolean processASync) {
     if(processASync) {
-      scheduleEventAsync(payload);
+      scheduleEventAsync(payload, null);
     } else {
-      processEventSync(payload);
+      processEventSync(payload, null);
+    }
+  }
+
+  public void eventReceived(Object payload, String businessKey, boolean processASync) {
+    if(processASync) {
+      scheduleEventAsync(payload, businessKey);
+    } else {
+      processEventSync(payload, businessKey);
     }
   }
 
   protected void processEventSync(Object payload) {
-    EventHandler eventHandler = Context.getProcessEngineConfiguration().getEventHandler(eventType);
-    ensureNotNull("Could not find eventhandler for event of type '" + eventType + "'", "eventHandler", eventHandler);
-    eventHandler.handleEvent(this, payload, Context.getCommandContext());
+    this.processEventSync(payload, null);
   }
 
-  protected void scheduleEventAsync(Object payload) {
+  protected void processEventSync(Object payload, String businessKey) {
+    EventHandler eventHandler = Context.getProcessEngineConfiguration().getEventHandler(eventType);
+    ensureNotNull("Could not find eventhandler for event of type '" + eventType + "'", "eventHandler", eventHandler);
+    eventHandler.handleEvent(this, payload, businessKey, Context.getCommandContext());
+  }
+
+  protected void scheduleEventAsync(Object payload, String businessKey) {
 
     EventSubscriptionJobDeclaration asyncDeclaration = getJobDeclaration();
 
     if (asyncDeclaration == null) {
       // fallback to sync if we couldn't find a job declaration
-      processEventSync(payload);
+      processEventSync(payload, businessKey);
     }
     else {
       MessageEntity message = asyncDeclaration.createJobInstance(this);
@@ -317,14 +327,6 @@ public class EventSubscriptionEntity implements EventSubscription, DbEntity, Has
 
   public void setTenantId(String tenantId) {
     this.tenantId = tenantId;
-  }
-
-  public String getBusinessKey() {
-    return businessKey;
-  }
-
-  public void setBusinessKey(String businessKey) {
-    this.businessKey = businessKey;
   }
 
   @Override

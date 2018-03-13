@@ -15,6 +15,7 @@ package org.camunda.bpm.engine.impl.event;
 
 
 import java.util.List;
+import java.util.Map;
 
 import org.camunda.bpm.engine.ProcessEngineException;
 import org.camunda.bpm.engine.impl.bpmn.helper.CompensationUtil;
@@ -38,7 +39,7 @@ public class CompensationEventHandler implements EventHandler {
   }
 
   @Override
-  public void handleEvent(EventSubscriptionEntity eventSubscription, Object payload, CommandContext commandContext) {
+  public void handleEvent(EventSubscriptionEntity eventSubscription, Object payload, String businessKey, CommandContext commandContext) {
     eventSubscription.delete();
 
     String configuration = eventSubscription.getConfiguration();
