@@ -14,9 +14,9 @@
 
 		<startEvent id="start" />
 
-		<sequenceFlow sourceRef="start" targetRef="signalEvent" />
+		<sequenceFlow sourceRef="start" targetRef="end" />
 
-		<intermediateThrowEvent id="signalEvent" name="Alert" >
+		<endEvent id="end">
 			<extensionElements>
 				<camunda:inputOutput>
 					<camunda:inputParameter name="localVar1">localVal1</camunda:inputParameter>
@@ -24,11 +24,7 @@
 				</camunda:inputOutput>
 			</extensionElements>
 			<signalEventDefinition signalRef="alertSignal" />
-		</intermediateThrowEvent>
-
-		<sequenceFlow sourceRef="signalEvent" targetRef="end" />
-
-		<endEvent id="end" />
+		</endEvent>
 
 	</process>
 

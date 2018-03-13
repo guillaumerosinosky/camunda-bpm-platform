@@ -55,7 +55,7 @@ public class SignalEventHandler extends EventHandlerImpl {
       ActivityImpl signalStartEvent = processDefinition.findActivity(eventSubscription.getActivityId());
       PvmProcessInstance processInstance = processDefinition.createProcessInstance(eventSubscription.getBusinessKey(), signalStartEvent);
 
-      if (payload != null && payload instanceof Map) {
+      if (payload instanceof Map) {
         processInstance.start((Map<String, Object>) payload);
       } else {
         processInstance.start();
