@@ -13,10 +13,8 @@
 package org.camunda.bpm.engine.test.standalone.initialization;
 
 import org.camunda.bpm.engine.ProcessEngineConfiguration;
-import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.impl.persistence.entity.JobEntity;
 import org.camunda.bpm.engine.impl.test.PvmTestCase;
-import org.camunda.bpm.engine.test.jobexecutor.ControllableJobExecutor;
 
 /**
  * @author Tom Baeyens
