@@ -1,6 +1,7 @@
 package org.camunda.bpm.engine.test.concurrency;
 
 import org.camunda.bpm.engine.ProcessEngineConfiguration;
+import org.camunda.bpm.engine.ProcessEngines;
 import org.camunda.bpm.engine.SchemaOperationsCommand;
 import org.camunda.bpm.engine.impl.SchemaOperationsProcessEngineBuild;
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
@@ -12,7 +13,8 @@ import org.camunda.bpm.engine.runtime.Job;
 import java.util.List;
 
 /**
- * <p>Tests a concurrent attempt of a bootstrapping Process Engine to reconfigure the HistoryCleanupJob while the JobExecutor tries to execute it.</p>
+ * <p>Tests a concurrent attempt of a bootstrapping Process Engine to reconfigure
+ * the HistoryCleanupJob while the JobExecutor tries to execute it.</p>
  *
  * @author Nikola Koevski
  */
@@ -59,10 +61,11 @@ public class ConcurrentProcessEngineJobExecutorHistoryCleanupJobTest extends Con
     thread1.waitUntilDone();
 
     thread2.waitForSync();
-    thread2.waitUntilDone();
+    thread2.waitUntilDone(true);
 
     assertNull(thread1.getException());
-    assertNotNull(thread2.getException());
+    assertNull(thread2.getException());
+    assertEquals(2, ProcessEngines.getProcessEngines().size());
   }
 
   protected static class ControllableProcessEngineBootstrapCommand extends ControllableCommand<Void> {
@@ -73,11 +76,11 @@ public class ConcurrentProcessEngineJobExecutorHistoryCleanupJobTest extends Con
       SchemaOperationsCommand schemaOperationsCommand = new ControllableSchemaOperationsProcessEngineBuild(this.monitor);
 
       ProcessEngineConfiguration processEngineConfiguration = ProcessEngineConfiguration
-        .createProcessEngineConfigurationFromResource("camunda.cfg.xml");
+        .createProcessEngineConfigurationFromResource("org/camunda/bpm/engine/test/concurrency/historycleanup.camunda.cfg.xml");
       processEngineConfiguration.setSchemaOperationsCommand(schemaOperationsCommand);
 
+      processEngineConfiguration.setProcessEngineName("historyCleanupJobEngine");
       processEngineConfiguration.buildProcessEngine();
-
 
       return null;
     }
