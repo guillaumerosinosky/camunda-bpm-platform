@@ -1,7 +1,8 @@
 package org.camunda.bpm.engine.test.concurrency;
 
-import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.ProcessEngineConfiguration;
+import org.camunda.bpm.engine.SchemaOperationsCommand;
+import org.camunda.bpm.engine.impl.SchemaOperationsProcessEngineBuild;
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.impl.interceptor.Command;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
@@ -69,13 +70,14 @@ public class ConcurrentProcessEngineJobExecutorHistoryCleanupJobTest extends Con
     @Override
     public Void execute(CommandContext commandContext) {
 
-      monitor.sync();
+      SchemaOperationsCommand schemaOperationsCommand = new ControllableSchemaOperationsProcessEngineBuild(this.monitor);
 
-      ProcessEngineConfiguration
-        .createProcessEngineConfigurationFromResource("camunda.cfg.xml")
-        .buildProcessEngine();
+      ProcessEngineConfiguration processEngineConfiguration = ProcessEngineConfiguration
+        .createProcessEngineConfigurationFromResource("camunda.cfg.xml");
+      processEngineConfiguration.setSchemaOperationsCommand(schemaOperationsCommand);
 
-      monitor.sync();
+      processEngineConfiguration.buildProcessEngine();
+
 
       return null;
     }
@@ -95,6 +97,25 @@ public class ConcurrentProcessEngineJobExecutorHistoryCleanupJobTest extends Con
       monitor.sync();
 
       return null;
+    }
+  }
+
+  protected static class ControllableSchemaOperationsProcessEngineBuild extends SchemaOperationsProcessEngineBuild implements Command<Void> {
+
+    protected final ThreadControl monitor;
+
+    public ControllableSchemaOperationsProcessEngineBuild(ThreadControl threadControl) {
+      this.monitor = threadControl;
+    }
+
+    @Override
+    protected void createHistoryCleanupJob() {
+
+      monitor.sync();
+
+      super.createHistoryCleanupJob();
+
+      monitor.sync();
     }
   }
 }

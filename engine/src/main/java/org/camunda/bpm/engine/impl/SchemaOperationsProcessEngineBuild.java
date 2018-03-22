@@ -27,7 +27,7 @@ import org.camunda.bpm.engine.impl.persistence.entity.PropertyEntity;
  * @author Sebastian Menski
  * @author Daniel Meyer
  */
-public final class SchemaOperationsProcessEngineBuild implements SchemaOperationsCommand {
+public class SchemaOperationsProcessEngineBuild implements SchemaOperationsCommand {
 
   private final static EnginePersistenceLogger LOG = ProcessEngineLogger.PERSISTENCE_LOGGER;
 
@@ -56,11 +56,15 @@ public final class SchemaOperationsProcessEngineBuild implements SchemaOperation
     checkHistoryCleanupLockExists(commandContext);
 
     //create history cleanup job
+    createHistoryCleanupJob();
+
+    return null;
+  }
+
+  protected void createHistoryCleanupJob() {
     if (Context.getProcessEngineConfiguration().getManagementService().getTableMetaData("ACT_RU_JOB") != null) {
       Context.getProcessEngineConfiguration().getHistoryService().cleanUpHistoryAsync();
     }
-
-    return null;
   }
 
   public void checkDeploymentLockExists(CommandContext commandContext) {
