@@ -16,10 +16,8 @@ import org.camunda.bpm.engine.ProcessEngineConfiguration;
 import org.camunda.bpm.engine.SchemaOperationsCommand;
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.impl.context.Context;
-import org.camunda.bpm.engine.impl.db.EnginePersistenceLogger;
 import org.camunda.bpm.engine.impl.db.PersistenceSession;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
-import org.camunda.bpm.engine.impl.persistence.entity.PropertyEntity;
 
 /**
  * @author Tom Baeyens
@@ -28,8 +26,6 @@ import org.camunda.bpm.engine.impl.persistence.entity.PropertyEntity;
  * @author Daniel Meyer
  */
 public class SchemaOperationsProcessEngineBuild implements SchemaOperationsCommand {
-
-  private final static EnginePersistenceLogger LOG = ProcessEngineLogger.PERSISTENCE_LOGGER;
 
   public Void execute(CommandContext commandContext) {
     String databaseSchemaUpdate = Context.getProcessEngineConfiguration().getDatabaseSchemaUpdate();
@@ -52,33 +48,6 @@ public class SchemaOperationsProcessEngineBuild implements SchemaOperationsComma
       persistenceSession.dbSchemaUpdate();
     }
 
-    checkDeploymentLockExists(commandContext);
-    checkHistoryCleanupLockExists(commandContext);
-
-    //create history cleanup job
-    createHistoryCleanupJob();
-
     return null;
   }
-
-  protected void createHistoryCleanupJob() {
-    if (Context.getProcessEngineConfiguration().getManagementService().getTableMetaData("ACT_RU_JOB") != null) {
-      Context.getProcessEngineConfiguration().getHistoryService().cleanUpHistoryAsync();
-    }
-  }
-
-  public void checkDeploymentLockExists(CommandContext commandContext) {
-    PropertyEntity deploymentLockProperty = commandContext.getPropertyManager().findPropertyById("deployment.lock");
-    if (deploymentLockProperty == null) {
-      LOG.noDeploymentLockPropertyFound();
-    }
-  }
-
-  public void checkHistoryCleanupLockExists(CommandContext commandContext) {
-    PropertyEntity historyCleanupLockProperty = commandContext.getPropertyManager().findPropertyById("history.cleanup.job.lock");
-    if (historyCleanupLockProperty == null) {
-      LOG.noHistoryCleanupLockPropertyFound();
-    }
-  }
-
 }

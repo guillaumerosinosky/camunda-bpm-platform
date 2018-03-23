@@ -23,6 +23,7 @@ import org.camunda.bpm.engine.impl.interceptor.CommandExecutor;
 import org.camunda.bpm.engine.impl.interceptor.SessionFactory;
 import org.camunda.bpm.engine.impl.jobexecutor.JobExecutor;
 import org.camunda.bpm.engine.impl.metrics.reporter.DbMetricsReporter;
+import org.camunda.bpm.engine.impl.processengine.BootstrapEngineReconfigurationRunnable;
 
 /**
  * @author Tom Baeyens
@@ -50,6 +51,8 @@ public class ProcessEngineImpl implements ProcessEngine {
   protected JobExecutor jobExecutor;
   protected CommandExecutor commandExecutor;
   protected CommandExecutor commandExecutorSchemaOperations;
+  protected BootstrapEngineReconfigurationRunnable bootstrapEngineReconfigurationRunnable;
+  protected Thread bootstrapEngineReconfigThread;
   protected Map<Class<?>, SessionFactory> sessionFactories;
   protected ExpressionManager expressionManager;
   protected HistoryLevel historyLevel;
@@ -106,28 +109,28 @@ public class ProcessEngineImpl implements ProcessEngine {
         dbMetricsReporter.start();
       }
     }
-
-    //create history cleanup job
-    if (managementService.getTableMetaData("ACT_RU_JOB") != null) {
-      processEngineConfiguration.getHistoryService().cleanUpHistoryAsync();
-    }
-
   }
 
   protected void executeSchemaOperations() {
-    // TODO Should handle OLE better (hint: Maybe using Random Backoff?)
-    try {
-      commandExecutorSchemaOperations.execute(processEngineConfiguration.getSchemaOperationsCommand());
-    } catch (OptimisticLockingException ole) {
-      commandExecutorSchemaOperations.execute(processEngineConfiguration.getSchemaOperationsCommand());
-    }
+    commandExecutorSchemaOperations.execute(processEngineConfiguration.getSchemaOperationsCommand());
     commandExecutorSchemaOperations.execute(processEngineConfiguration.getHistoryLevelCommand());
+    commandExecutorSchemaOperations.execute(processEngineConfiguration.getProcessEngineReconfigurationCommand());
+//    bootstrapEngineReconfigurationRunnable = new BootstrapEngineReconfigurationRunnable(this);
+//    bootstrapEngineReconfigThread = new Thread(bootstrapEngineReconfigurationRunnable);
   }
 
   @Override
   public void close() {
 
     ProcessEngines.unregister(this);
+
+    // stop bootstrap thread if it hasn't finished already
+//    try {
+//      bootstrapEngineReconfigurationRunnable.stop();
+//      bootstrapEngineReconfigThread.join();
+//    } catch (InterruptedException e) {
+//      // ignore exception
+//    }
 
     if(processEngineConfiguration.isMetricsEnabled()) {
       processEngineConfiguration.getDbMetricsReporter().stop();

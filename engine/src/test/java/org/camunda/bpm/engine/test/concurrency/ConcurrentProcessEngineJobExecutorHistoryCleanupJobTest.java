@@ -1,5 +1,19 @@
+/* Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.camunda.bpm.engine.test.concurrency;
 
+import org.camunda.bpm.engine.OptimisticLockingException;
 import org.camunda.bpm.engine.ProcessEngineConfiguration;
 import org.camunda.bpm.engine.ProcessEngines;
 import org.camunda.bpm.engine.SchemaOperationsCommand;
@@ -8,6 +22,7 @@ import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.impl.interceptor.Command;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
 import org.camunda.bpm.engine.impl.persistence.entity.JobEntity;
+import org.camunda.bpm.engine.impl.processengine.BootstrapProcessEngineCommand;
 import org.camunda.bpm.engine.runtime.Job;
 
 import java.util.List;
@@ -64,7 +79,7 @@ public class ConcurrentProcessEngineJobExecutorHistoryCleanupJobTest extends Con
     thread2.waitUntilDone(true);
 
     assertNull(thread1.getException());
-    assertNull(thread2.getException());
+    assertNotNull(thread2.getException());
     assertEquals(2, ProcessEngines.getProcessEngines().size());
   }
 
@@ -73,11 +88,11 @@ public class ConcurrentProcessEngineJobExecutorHistoryCleanupJobTest extends Con
     @Override
     public Void execute(CommandContext commandContext) {
 
-      SchemaOperationsCommand schemaOperationsCommand = new ControllableSchemaOperationsProcessEngineBuild(this.monitor);
+      ControllableBootstrapProcessEngineCommand bootstrapProcessEngineCommand = new ControllableBootstrapProcessEngineCommand(this.monitor);
 
       ProcessEngineConfiguration processEngineConfiguration = ProcessEngineConfiguration
         .createProcessEngineConfigurationFromResource("org/camunda/bpm/engine/test/concurrency/historycleanup.camunda.cfg.xml");
-      processEngineConfiguration.setSchemaOperationsCommand(schemaOperationsCommand);
+      processEngineConfiguration.setProcessEngineReconfigurationCommand(bootstrapProcessEngineCommand);
 
       processEngineConfiguration.setProcessEngineName("historyCleanupJobEngine");
       processEngineConfiguration.buildProcessEngine();
@@ -103,11 +118,11 @@ public class ConcurrentProcessEngineJobExecutorHistoryCleanupJobTest extends Con
     }
   }
 
-  protected static class ControllableSchemaOperationsProcessEngineBuild extends SchemaOperationsProcessEngineBuild implements Command<Void> {
+  protected static class ControllableBootstrapProcessEngineCommand extends BootstrapProcessEngineCommand {
 
     protected final ThreadControl monitor;
 
-    public ControllableSchemaOperationsProcessEngineBuild(ThreadControl threadControl) {
+    public ControllableBootstrapProcessEngineCommand(ThreadControl threadControl) {
       this.monitor = threadControl;
     }
 

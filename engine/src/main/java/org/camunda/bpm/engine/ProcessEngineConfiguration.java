@@ -25,6 +25,8 @@ import org.camunda.bpm.engine.impl.cfg.BeansConfigurationHelper;
 import org.camunda.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.camunda.bpm.engine.impl.cfg.StandaloneProcessEngineConfiguration;
 import org.camunda.bpm.engine.impl.persistence.entity.JobEntity;
+import org.camunda.bpm.engine.impl.processengine.BootstrapProcessEngineCommand;
+import org.camunda.bpm.engine.impl.processengine.ProcessEngineReconfigurationCommand;
 import org.camunda.bpm.engine.variable.type.ValueTypeResolver;
 
 
@@ -213,6 +215,7 @@ public abstract class ProcessEngineConfiguration {
   protected DataSource dataSource;
   protected SchemaOperationsCommand schemaOperationsCommand = new SchemaOperationsProcessEngineBuild();
   protected HistoryLevelSetupCommand historyLevelCommand = new HistoryLevelSetupCommand();
+  protected ProcessEngineReconfigurationCommand processEngineReconfigurationCommand = new BootstrapProcessEngineCommand();
   protected boolean transactionsExternallyManaged = false;
   /** the number of seconds the jdbc driver will wait for a response from the database */
   protected Integer jdbcStatementTimeout;
@@ -223,6 +226,12 @@ public abstract class ProcessEngineConfiguration {
   protected boolean jpaHandleTransaction;
   protected boolean jpaCloseEntityManager;
   protected int defaultNumberOfRetries = JobEntity.DEFAULT_RETRIES;
+
+  // Back off configuration for Process Engine Bootstrap command Back Off timer
+  protected long baseBackOffTime = 10;
+  protected float backOffFactor = 2;
+  protected long maxBackOffTime = 5 * 1000;
+  protected boolean applyJitter = true;
 
   protected ClassLoader classLoader;
 
@@ -449,6 +458,14 @@ public abstract class ProcessEngineConfiguration {
 
   public void setHistoryLevelCommand(HistoryLevelSetupCommand historyLevelCommand) {
     this.historyLevelCommand = historyLevelCommand;
+  }
+
+  public ProcessEngineReconfigurationCommand getProcessEngineReconfigurationCommand() {
+    return processEngineReconfigurationCommand;
+  }
+
+  public void setProcessEngineReconfigurationCommand(ProcessEngineReconfigurationCommand processEngineReconfigurationCommand) {
+    this.processEngineReconfigurationCommand = processEngineReconfigurationCommand;
   }
 
   public String getJdbcDriver() {
@@ -776,5 +793,37 @@ public abstract class ProcessEngineConfiguration {
 
   public void setEnableExceptionsAfterUnhandledBpmnError(boolean enableExceptionsAfterUnhandledBpmnError) {
     this.enableExceptionsAfterUnhandledBpmnError = enableExceptionsAfterUnhandledBpmnError;
+  }
+
+  public long getBaseBackOffTime() {
+    return baseBackOffTime;
+  }
+
+  public void setBaseBackOffTime(long baseBackOffTime) {
+    this.baseBackOffTime = baseBackOffTime;
+  }
+
+  public float getBackOffFactor() {
+    return backOffFactor;
+  }
+
+  public void setBackOffFactor(float backOffFactor) {
+    this.backOffFactor = backOffFactor;
+  }
+
+  public long getMaxBackOffTime() {
+    return maxBackOffTime;
+  }
+
+  public void setMaxBackOffTime(long maxBackOffTime) {
+    this.maxBackOffTime = maxBackOffTime;
+  }
+
+  public boolean isApplyJitter() {
+    return applyJitter;
+  }
+
+  public void setApplyJitter(boolean applyJitter) {
+    this.applyJitter = applyJitter;
   }
 }
