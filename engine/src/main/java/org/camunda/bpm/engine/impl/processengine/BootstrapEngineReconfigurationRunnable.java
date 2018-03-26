@@ -15,11 +15,9 @@ package org.camunda.bpm.engine.impl.processengine;
 
 import org.camunda.bpm.engine.OptimisticLockingException;
 import org.camunda.bpm.engine.ProcessEngine;
-import org.camunda.bpm.engine.ProcessEngineConfiguration;
 import org.camunda.bpm.engine.impl.ProcessEngineLogger;
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.impl.db.EnginePersistenceLogger;
-import org.camunda.bpm.engine.impl.db.PersistenceSession;
 import org.camunda.bpm.engine.impl.interceptor.CommandExecutor;
 
 /**
@@ -40,7 +38,8 @@ public class BootstrapEngineReconfigurationRunnable implements Runnable {
     this.processEngine = processEngine;
     this.commandExecutor = ((ProcessEngineConfigurationImpl)processEngine.getProcessEngineConfiguration())
       .getCommandExecutorSchemaOperations();
-    this.bootstrapCommand = processEngine.getProcessEngineConfiguration().getProcessEngineReconfigurationCommand();
+    this.bootstrapCommand = processEngine.getProcessEngineConfiguration()
+      .getProcessEngineReconfigurationCommand();
     this.optimisticLockingException = null;
   }
 

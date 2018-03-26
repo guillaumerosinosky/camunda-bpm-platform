@@ -114,9 +114,12 @@ public class ProcessEngineImpl implements ProcessEngine {
   protected void executeSchemaOperations() {
     commandExecutorSchemaOperations.execute(processEngineConfiguration.getSchemaOperationsCommand());
     commandExecutorSchemaOperations.execute(processEngineConfiguration.getHistoryLevelCommand());
-    commandExecutorSchemaOperations.execute(processEngineConfiguration.getProcessEngineReconfigurationCommand());
-//    bootstrapEngineReconfigurationRunnable = new BootstrapEngineReconfigurationRunnable(this);
-//    bootstrapEngineReconfigThread = new Thread(bootstrapEngineReconfigurationRunnable);
+
+    if (bootstrapEngineReconfigThread == null) {
+      bootstrapEngineReconfigurationRunnable = new BootstrapEngineReconfigurationRunnable(this);
+      bootstrapEngineReconfigThread = new Thread(bootstrapEngineReconfigurationRunnable);
+      bootstrapEngineReconfigThread.start();
+    }
   }
 
   @Override
@@ -125,12 +128,12 @@ public class ProcessEngineImpl implements ProcessEngine {
     ProcessEngines.unregister(this);
 
     // stop bootstrap thread if it hasn't finished already
-//    try {
-//      bootstrapEngineReconfigurationRunnable.stop();
-//      bootstrapEngineReconfigThread.join();
-//    } catch (InterruptedException e) {
-//      // ignore exception
-//    }
+    try {
+      bootstrapEngineReconfigurationRunnable.stop();
+      bootstrapEngineReconfigThread.join();
+    } catch (InterruptedException e) {
+      // ignore exception
+    }
 
     if(processEngineConfiguration.isMetricsEnabled()) {
       processEngineConfiguration.getDbMetricsReporter().stop();

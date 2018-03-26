@@ -13,11 +13,8 @@
 
 package org.camunda.bpm.engine.test.concurrency;
 
-import org.camunda.bpm.engine.OptimisticLockingException;
 import org.camunda.bpm.engine.ProcessEngineConfiguration;
 import org.camunda.bpm.engine.ProcessEngines;
-import org.camunda.bpm.engine.SchemaOperationsCommand;
-import org.camunda.bpm.engine.impl.SchemaOperationsProcessEngineBuild;
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.impl.interceptor.Command;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
@@ -79,7 +76,7 @@ public class ConcurrentProcessEngineJobExecutorHistoryCleanupJobTest extends Con
     thread2.waitUntilDone(true);
 
     assertNull(thread1.getException());
-    assertNotNull(thread2.getException());
+    assertNull(thread2.getException());
     assertEquals(2, ProcessEngines.getProcessEngines().size());
   }
 
