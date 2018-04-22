@@ -423,7 +423,7 @@ public class DbSqlSession extends AbstractPersistenceSession {
     executeSchemaResource(operation, component, getResourceForDbOperation(operation, operation, component), false);
   }
 
-  public static String[] JDBC_METADATA_TABLE_TYPES = {"TABLE"};
+  public static String[] JDBC_METADATA_TABLE_TYPES = {"TABLE", "FOREIGN TABLE"};
 
   @Override
   public boolean isEngineTablePresent(){
